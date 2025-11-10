@@ -30,8 +30,8 @@ const EVENT_LOGS = async () => {
   return fold;
 };
 
-const TRANSACTIONS = async () => {
-  let fold = await DB().collection("Transactions");
+const TRANSACTIONS = async (wallet) => {
+  let fold = await DB().collection("Transactions:" + wallet);
 
   return fold;
 };

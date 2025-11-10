@@ -3,7 +3,7 @@ import { TRANSACTIONS, VIRTUAL_ACCOUNTS, WALLETS } from "../ds/folders.js";
 const get_wallet = async (req, res) => {
   let { user_id } = req.params;
 
-  let wallet = await (await WALLETS()).readone({ _id: user_id });
+  let wallet = await (await WALLETS()).findOne({ _id: user_id });
   if (!wallet) {
     return res.json({
       ok: false,
@@ -12,7 +12,7 @@ const get_wallet = async (req, res) => {
   }
   wallet.virtual_account = await (
     await VIRTUAL_ACCOUNTS()
-  ).readone({ _id: wallet.virtual_account });
+  ).findOne({ _id: wallet.virtual_account });
 
   res.json({
     ok: !!wallet,
@@ -26,7 +26,7 @@ const deduct = async (req, res) => {
   amount = Math.abs(Number(amount));
 
   let Wallet = await WALLETS();
-  let data = await Wallet.readone({ _id: wallet });
+  let data = await Wallet.findOne({ _id: wallet });
   if (!data || data.balance < amount) {
     return res.json({
       ok: false,
@@ -35,8 +35,8 @@ const deduct = async (req, res) => {
   }
 
   await (
-    await TRANSACTIONS()
-  ).write({
+    await TRANSACTIONS(wallet)
+  ).insertOne({
     title: "Withdrawal",
     wallet,
     amount,
@@ -48,25 +48,40 @@ const deduct = async (req, res) => {
   res.json({
     ok: true,
     message: "Balance updated succesfully",
-    data: await Wallet.update(
+    data: await Wallet.updateOne(
       { _id: wallet },
-      { balance: { $dec: Number(amount) } }
+      { $inc: { balance: -amount } }
     ),
   });
 };
 
 const transactions = async (req, res) => {
-  let { wallet, cursor } = req.body;
+  let { wallet, skip } = req.body;
+  skip = Number(skip) || 0;
 
-  let txs = await TRANSACTIONS();
-  txs = await txs.index(wallet);
+  let limit = 20;
+  let txs = await TRANSACTIONS(wallet);
 
-  let data = await txs.read(null, { cursor, limit: 20 });
+  let data = await txs
+    .find({})
+    .sort({ _id: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  let total = await txs.countDocuments();
 
   res.json({
     ok: true,
     message: "Transactions retrieved",
     data,
+    pagination: {
+      page: skip / limit + 1,
+      pages: Math.ceil(total / limit),
+      skip,
+      limit,
+      total,
+    },
   });
 };
 
