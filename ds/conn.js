@@ -6,7 +6,7 @@ const conn = () => {
 
   let db = new Mongo({
     db_url: process.env.MONGODB_URI,
-    db_name: "Rushbox-repo13",
+    db_name: "Rushbox-repo14",
   });
 
   db_instance = db;
