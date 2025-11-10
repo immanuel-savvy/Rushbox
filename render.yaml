@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: rushbox
+    env: node
+    plan: free
+    branch: master
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true

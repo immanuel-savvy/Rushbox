@@ -1,0 +1,27 @@
+{
+  "name": "rushbox",
+  "version": "1.0.0",
+  "description": "For Rushbox",
+  "main": "Rushbaby.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "savvy",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "@godprotocol/repositories": "^1.1.27",
+    "axios": "^1.12.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "godprotocol": "^1.2.54",
+    "net": "^1.0.2",
+    "nodemailer": "^7.0.6",
+    "socket-io": "^1.0.0"
+  }
+}
