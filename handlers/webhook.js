@@ -1,10 +1,5 @@
 import crypto from "crypto";
-import {
-  EVENT_LOGS,
-  TRANSACTIONS,
-  VIRTUAL_ACCOUNTS,
-  WALLETS,
-} from "../ds/folders.js";
+import { TRANSACTIONS, VIRTUAL_ACCOUNTS, WALLETS } from "../ds/folders.js";
 import { hash } from "./auth.js";
 
 const paystack_webhook_events_listener = async (req, res) => {
@@ -14,42 +9,27 @@ const paystack_webhook_events_listener = async (req, res) => {
     .update(JSON.stringify(body))
     .digest("hex");
 
-  // let Ev_logs = await EVENT_LOGS();
-  // try {
-  //   await Ev_logs.write({
-  //     hash_,
-  //     phash: req.headers["x-paystack-signature"],
-  //     whatis: "HAPPENING",
-  //     body,
-  //   });
-  // } catch (e) {
-  //   await Ev_logs.write({ m: e.message });
-  // }
-
   if (hash_ === req.headers["x-paystack-signature"]) {
-    // await Ev_logs.write({ inside: "yes?" });
-
-    // await Ev_logs.write({ body, in_here: true });
     if (body.event === "charge.success") {
-      // await Ev_logs.write({ body, charge_success: true });
       let customer = body.data.customer;
       let customer_hash = hash(customer.customer_code);
-      // console.log(await Ev_logs.write({ customer_hash }));
       let virtual_account = await (
         await VIRTUAL_ACCOUNTS()
-      ).readone({ _id: customer_hash });
+      ).findOne({ _id: customer_hash });
       if (virtual_account) {
         let value = body.data.amount / 100;
 
-        // await Ev_logs.write({ virtual_account, got_here: true });
         await (
           await WALLETS()
-        ).update({ _id: virtual_account.user }, { balance: { $inc: value } });
+        ).updateOne(
+          { _id: virtual_account.user },
+          { $inc: { balance: value } }
+        );
 
         let authorization = body.data.authorization;
         let ress = await (
-          await TRANSACTIONS()
-        ).write({
+          await TRANSACTIONS(virtual_account.user)
+        ).insertOne({
           title: "Top-up",
           amount: value,
           wallet: virtual_account.user,
@@ -61,7 +41,6 @@ const paystack_webhook_events_listener = async (req, res) => {
             },
           },
         });
-        // await Ev_logs.write({ ress, after_here: true });
       }
     }
     res.send(200);
