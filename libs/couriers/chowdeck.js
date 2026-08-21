@@ -28,6 +28,7 @@ const estimate_chowdeck = async ({
     });
 
     const data = await res.json();
+    debug(data, "chowdeck estimate");
 
     if (data.status !== "success") return null;
 

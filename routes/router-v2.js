@@ -16,6 +16,7 @@ import {
 } from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
+import { register_push_token } from "../handlers/v2/push_notifications.js";
 import {
   add_review,
   courier_stats,
@@ -360,6 +361,18 @@ const router = {
   },
   retrieve_webhook: {
     handler: retrieve_webhook,
+  },
+
+  // Push notifications
+  register_push_token: {
+    handler: register_push_token,
+    schema: {
+      body: {
+        token: { type: "string", required: true },
+        device_id: { type: "string" },
+        platform: { type: "string" },
+      },
+    },
   },
 };
 

@@ -39,7 +39,7 @@ const estimate_kwikpik = async ({
 
     const data = await res.json();
 
-    console.log(data, "KWIKPIK");
+    debug(JSON.stringify(data, null, 2), "KWIKPIK");
     if (!data.data) return null;
 
     return {

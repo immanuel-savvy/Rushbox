@@ -43,7 +43,7 @@ let estimate_dellyman = async ({ pickup_address, destination_address }) => {
   }
 };
 
-async function create_dellyman(details) {
+async function create_dellyman(details, { req }) {
   let {
     reference,
     company_id,

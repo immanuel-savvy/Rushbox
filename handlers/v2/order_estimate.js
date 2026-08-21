@@ -123,6 +123,8 @@ const fetch_estimates = async (req) => {
     estimate_errandlr(payload),
   ]);
 
+  debug(estimates, "howw");
+
   let normalized = estimates
     .filter(Boolean)
     .map(applyCharges)
