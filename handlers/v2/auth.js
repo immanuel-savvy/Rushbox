@@ -313,8 +313,26 @@ const delete_key = async (req) => {
   return res;
 };
 
+const agent_signin = async (req) => {
+  let { headers, services, body } = req;
+  let { email, password } = body;
+
+  let Profile = await services("profiles");
+
+  let res = await Profile.call("signin", {
+    profile_type: process.env.ADMIN_PROFILE_TYPE,
+    credentials: {
+      email,
+      password,
+    },
+  });
+
+  return res;
+};
+
 export {
   email_signin,
+  agent_signin,
   signin,
   update_email,
   update_phone,

@@ -1,4 +1,5 @@
 import {
+  agent_signin,
   confirm_phone_update,
   create_api_key,
   delete_key,
@@ -22,6 +23,19 @@ import {
   courier_stats,
   get_reviews,
 } from "../handlers/v2/reviews.js";
+import {
+  assign_support_chat,
+  create_chat_agent,
+  create_chat_session,
+  end_chat_session,
+  get_agent_chats,
+  get_chat_agents,
+  get_chat_messages,
+  get_chat_session,
+  get_chat_sessions,
+  get_support_chats,
+  send_chat_message,
+} from "../handlers/v2/support_chat.js";
 import {
   confirm_delete_account,
   delete_account,
@@ -371,6 +385,167 @@ const router = {
         token: { type: "string", required: true },
         device_id: { type: "string" },
         platform: { type: "string" },
+      },
+    },
+  },
+
+  // Support chats
+
+  // Chat routes
+  agent_signin: {
+    handler: agent_signin,
+    security: "api_key",
+    schema: {
+      body: {
+        email: { type: "string", required: true },
+        password: { type: "string", required: true },
+      },
+    },
+  },
+
+  create_chat_session: {
+    handler: create_chat_session,
+    security: "auth_token",
+    schema: {
+      body: {},
+    },
+  },
+
+  get_chat_sessions: {
+    handler: get_chat_sessions,
+    security: "auth_token",
+    schema: {
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 50 },
+      },
+      body: {
+        date: { type: "string" },
+      },
+    },
+  },
+
+  get_chat_session: {
+    handler: get_chat_session,
+    security: "auth_token",
+    schema: {
+      body: {
+        session_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  get_chat_messages: {
+    handler: get_chat_messages,
+    security: "auth_token",
+    schema: {
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 50 },
+      },
+      body: {
+        session_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  send_chat_message: {
+    handler: send_chat_message,
+    security: "auth_token",
+    schema: {
+      body: {
+        session_id: { type: "string", required: true },
+        message: { type: "string", required: true },
+      },
+    },
+  },
+
+  // Chat Agent routes
+
+  end_chat_session: {
+    handler: end_chat_session,
+    security: "auth_token",
+    schema: {
+      headers: {
+        "profile.profile": {
+          required: true,
+          type: "string",
+          enum: ["2baa7e8d-5d74-4ebc-ad50-3332593d01be"],
+        },
+      },
+      body: {
+        session_id: { type: "string", required: true },
+      },
+    },
+  },
+  get_agent_chats: {
+    handler: get_agent_chats,
+    security: "auth_token",
+    schema: {
+      headers: {
+        "profile.profile": {
+          required: true,
+          type: "string",
+          enum: ["2baa7e8d-5d74-4ebc-ad50-3332593d01be"],
+        },
+      },
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 20 },
+      },
+      body: {
+        status: { type: "string" },
+      },
+    },
+  },
+
+  //
+
+  create_chat_agent: {
+    handler: create_chat_agent,
+    security: "api_key",
+    schema: {
+      body: {
+        fullname: { type: "string", required: true },
+        email: { type: "string", required: true },
+      },
+    },
+  },
+
+  get_chat_agents: {
+    handler: get_chat_agents,
+    security: "api_key",
+    schema: {
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 50 },
+      },
+      body: {
+        // active: { type: "boolean" },
+      },
+    },
+  },
+  get_support_chats: {
+    handler: get_support_chats,
+    security: "api_key",
+    schema: {
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 20 },
+      },
+      body: {
+        status: { type: "string" },
+      },
+    },
+  },
+
+  assign_support_chat: {
+    handler: assign_support_chat,
+    security: "api_key",
+    schema: {
+      body: {
+        session_id: { type: "string", required: true },
+        agent_id: { type: "string", required: true },
       },
     },
   },
