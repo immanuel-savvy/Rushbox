@@ -18,9 +18,12 @@ import {
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
 import {
-  broadcast_notification,
   register_push_token,
   send_user_notification,
+  create_notification,
+  send_notification,
+  broadcast_notification,
+  delete_notification,
 } from "../handlers/v2/push_notifications.js";
 import {
   add_review,
@@ -434,9 +437,16 @@ const router = {
     security: "auth_token",
     schema: {
       body: {
-        token: { type: "string", required: true },
-        device_id: { type: "string", required: true },
-        platform: { type: "string" },
+        token: {
+          type: "string",
+          required: true,
+        },
+        platform: {
+          type: "string",
+        },
+        device_id: {
+          type: "string",
+        },
       },
     },
   },
@@ -446,11 +456,65 @@ const router = {
     security: "api_key",
     schema: {
       body: {
-        profile_id: { type: "string", required: true },
-        title: { type: "string", required: true },
-        text: { type: "string" },
-        body: { type: "string" },
-        data: { type: "object" },
+        profile_id: {
+          type: "string",
+          required: true,
+        },
+        title: {
+          type: "string",
+          required: true,
+        },
+        text: {
+          type: "string",
+        },
+        body: {
+          type: "string",
+        },
+        data: {
+          type: "object",
+        },
+      },
+    },
+  },
+
+  create_notification: {
+    handler: create_notification,
+    security: "api_key",
+    schema: {
+      body: {
+        title: {
+          type: "string",
+          required: true,
+        },
+        description: {
+          type: "string",
+        },
+        text: {
+          type: "string",
+        },
+        body: {
+          type: "string",
+        },
+        data: {
+          type: "object",
+        },
+      },
+    },
+  },
+
+  send_notification: {
+    handler: send_notification,
+    security: "api_key",
+    schema: {
+      body: {
+        message_id: {
+          type: "string",
+          required: true,
+        },
+        profile_id: {
+          type: "string",
+          required: true,
+        },
       },
     },
   },
@@ -460,10 +524,23 @@ const router = {
     security: "api_key",
     schema: {
       body: {
-        title: { type: "string", required: true },
-        text: { type: "string" },
-        body: { type: "string" },
-        data: { type: "object" },
+        message_id: {
+          type: "string",
+          required: true,
+        },
+      },
+    },
+  },
+
+  delete_notification: {
+    handler: delete_notification,
+    security: "api_key",
+    schema: {
+      body: {
+        message_id: {
+          type: "string",
+          required: true,
+        },
       },
     },
   },
