@@ -17,7 +17,11 @@ import {
 } from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
-import { register_push_token } from "../handlers/v2/push_notifications.js";
+import {
+  broadcast_notification,
+  register_push_token,
+  send_user_notification,
+} from "../handlers/v2/push_notifications.js";
 import {
   add_review,
   courier_stats,
@@ -427,11 +431,39 @@ const router = {
   // Push notifications
   register_push_token: {
     handler: register_push_token,
+    security: "auth_token",
     schema: {
       body: {
         token: { type: "string", required: true },
-        device_id: { type: "string" },
+        device_id: { type: "string", required: true },
         platform: { type: "string" },
+      },
+    },
+  },
+
+  send_user_notification: {
+    handler: send_user_notification,
+    security: "api_key",
+    schema: {
+      body: {
+        profile_id: { type: "string", required: true },
+        title: { type: "string", required: true },
+        text: { type: "string" },
+        body: { type: "string" },
+        data: { type: "object" },
+      },
+    },
+  },
+
+  broadcast_notification: {
+    handler: broadcast_notification,
+    security: "api_key",
+    schema: {
+      body: {
+        title: { type: "string", required: true },
+        text: { type: "string" },
+        body: { type: "string" },
+        data: { type: "object" },
       },
     },
   },
