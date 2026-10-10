@@ -72,8 +72,122 @@ import {
   courier_webhook,
   paystack_webhook_events_listener,
 } from "../handlers/v2/webhook.js";
+import {
+  create_blog,
+  update_blog,
+  publish_blog,
+  unpublish_blog,
+  delete_blog,
+  admin_blogs,
+  blog_posts,
+  blog_post,
+  admin_blog_campaigns,
+} from "../handlers/v2/blog.js";
 
 const router = {
+  create_blog: {
+    handler: create_blog,
+    security: "api_key",
+    schema: {
+      body: {
+        title: { type: "string", required: true },
+        body: { type: "string", required: true },
+        excerpt: { type: "string" },
+        images: { type: "array" },
+        slug: { type: "string" },
+      },
+    },
+  },
+
+  update_blog: {
+    handler: update_blog,
+    security: "api_key",
+    schema: {
+      body: {
+        blog_id: { type: "string", required: true },
+        title: { type: "string" },
+        body: { type: "string" },
+        excerpt: { type: "string" },
+        images: { type: "array" },
+        slug: { type: "string" },
+      },
+    },
+  },
+
+  publish_blog: {
+    handler: publish_blog,
+    security: "api_key",
+    schema: {
+      body: {
+        blog_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  unpublish_blog: {
+    handler: unpublish_blog,
+    security: "api_key",
+    schema: {
+      body: {
+        blog_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  delete_blog: {
+    handler: delete_blog,
+    security: "api_key",
+    schema: {
+      body: {
+        blog_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  admin_blogs: {
+    handler: admin_blogs,
+    security: "api_key",
+    schema: {
+      query: {
+        page: { type: "number" },
+        limit: { type: "number" },
+        status: { type: "string" },
+      },
+    },
+  },
+
+  blog_posts: {
+    handler: blog_posts,
+    security: "api_key",
+    schema: {
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 20 },
+      },
+    },
+  },
+
+  blog_post: {
+    handler: blog_post,
+    security: "api_key",
+    schema: {
+      body: {
+        blog_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  admin_blog_campaigns: {
+    handler: admin_blog_campaigns,
+    security: "api_key",
+    schema: {
+      query: {
+        page: { type: "number", default_value: 1 },
+        limit: { type: "number", default_value: 20 },
+      },
+    },
+  },
+
   user: {
     handler: user,
     security: "auth_token",
@@ -598,7 +712,7 @@ const router = {
         "profile.profile": {
           required: true,
           type: "string",
-          enum: ["2baa7e8d-5d74-4ebc-ad50-3332593d01be"],
+          enum: [process.env.ADMIN_PROFILE_TYPE],
         },
       },
       body: {
