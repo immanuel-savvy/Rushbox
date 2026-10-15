@@ -13,6 +13,13 @@ const services_config = {
     uri: "aimail.savvyaisolution.com",
     profile_key: process.env.AIMAIL_PROFILE_KEY,
   },
+  sockets: {
+    url: process.env.DEV
+      ? "http://localhost:5101"
+      : "https://sockets.rushbox.biz",
+    uri: "sockets.savvyaisolution.com",
+    profile_key: process.env.SOCKETS_PROFILE_KEY,
+  },
 };
 
 const gp_services_config = {

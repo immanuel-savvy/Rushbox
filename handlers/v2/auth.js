@@ -442,6 +442,42 @@ const confirm_agent_signin = async (req) => {
   return res;
 };
 
+const request_socket_auth = async (req) => {
+  let { gp, headers } = req;
+  let { profile } = headers;
+
+  let sockets = await req.services("sockets");
+
+  let res = await sockets.call(
+    "generate_ott",
+    {
+      name: `socket_auth-${profile._id}:${Date.now()}`,
+      limit: -1,
+      duration: 86400,
+      endpoints: ["validate"],
+      webhook: {
+        domain: gp.server.domain,
+        path: `socket_webhook/${profile._id}`,
+        version: "v2",
+        secret: process.env.RUSHBOX_SOCKET_SECRET,
+      },
+    },
+    {
+      xforwarding: "identity",
+    },
+  );
+
+  if (!res?.ok) {
+    return res;
+  }
+
+  return {
+    ok: true,
+    message: "Socket authentication token generated",
+    data: res.data,
+  };
+};
+
 export {
   email_signin,
   agent_signin,
@@ -453,4 +489,5 @@ export {
   refresh_api_key,
   retrieve_keys,
   confirm_phone_update,
+  request_socket_auth,
 };

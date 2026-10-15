@@ -5,6 +5,7 @@ import {
   email_signin,
   refresh_api_key,
   request_otp,
+  request_socket_auth,
   retrieve_keys,
   signin,
   update_email,
@@ -71,6 +72,7 @@ import { contact, newsletter, partnership_form } from "../handlers/v2/web.js";
 import {
   courier_webhook,
   paystack_webhook_events_listener,
+  socket_webhook,
 } from "../handlers/v2/webhook.js";
 import {
   create_blog,
@@ -188,6 +190,10 @@ const router = {
     },
   },
 
+  request_socket_auth: {
+    handler: request_socket_auth,
+    security: "auth_token",
+  },
   user: {
     handler: user,
     security: "auth_token",
@@ -526,6 +532,16 @@ const router = {
       query: {
         staging: { type: "boolean", default_value: true },
       },
+    },
+  },
+  "socket_webhook/:profile": {
+    handler: socket_webhook,
+    security: "none",
+    schema: {
+      params: {
+        profile: { required: true, type: "string" },
+      },
+      body: {},
     },
   },
 

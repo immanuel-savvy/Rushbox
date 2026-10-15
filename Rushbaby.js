@@ -16,6 +16,11 @@ let gp = new GodProtocol({
   platform_uri: process.env.PLATFORM_URI,
   api_key: process.env.API_KEY,
   profile_key_prefixes: ["rb_test_", "rb_live_"],
+  server: {
+    domain: process.env.DEV
+      ? "http://localhost:1440"
+      : "https://api.rushboxapp.com",
+  },
   db_config: {
     db_name: "rushbox",
     db_url: process.env.MONGODB_URI,

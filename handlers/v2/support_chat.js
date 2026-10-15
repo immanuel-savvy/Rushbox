@@ -185,81 +185,138 @@ const get_chat_messages = async (req) => {
 };
 
 const send_chat_message = async (req) => {
-  let { body, headers, db } = req;
+  let { body, headers, db, services, memory, gp } = req;
+  let { debug } = gp.utils;
 
-  let { session_id, message } = body || {};
-
-  let { profile } = headers;
-
-  let user_id = profile?._id;
-
-  let ChatSessions = await db.folder("ChatSessions");
-
-  let session = await ChatSessions.findOne({
-    _id: session_id,
-    $or: [{ user_id }, { assigned_agent_id: user_id }],
-  });
-
-  if (!session) {
-    return {
-      ok: false,
-      message: "Chat session not found",
-      data: null,
+  const log = (stage, data = {}) => {
+    const entry = {
+      scope: "send_chat_message",
+      stage,
+      timestamp: new Date().toISOString(),
+      ...data,
     };
-  }
 
-  if (session.status !== "active") {
-    return {
-      ok: false,
-      message: "Chat session is closed",
-      data: null,
-    };
-  }
-
-  let ChatMessages = await db.folder("ChatMessages");
-
-  let created_at = Date.now();
-
-  let chat_message = {
-    session_id,
-    sender_type: session?.user_id === user_id ? "user" : "agent",
-    sender_id: user_id,
-    message,
-    created_at,
-    _id: crypto.randomUUID(),
+    if (typeof debug === "function") {
+      debug(entry);
+    } else {
+      console.log("[send_chat_message]", entry);
+    }
   };
 
-  await ChatMessages.insertOne(chat_message);
+  try {
+    let { session_id, message } = body || {};
+    let { profile } = headers || {};
+    let user_id = profile?._id;
 
-  await ChatSessions.updateOne(
-    {
+    let ChatSessions = await db.folder("ChatSessions");
+
+    let session = await ChatSessions.findOne({
       _id: session_id,
-    },
-    {
-      $set: {
-        last_message: chat_message._id,
+      $or: [{ user_id }, { assigned_agent_id: user_id }],
+    });
+
+    if (!session) {
+      return {
+        ok: false,
+        message: "Chat session not found",
+        data: null,
+      };
+    }
+
+    if (session.status !== "active") {
+      return {
+        ok: false,
+        message: "Chat session is closed",
+        data: null,
+      };
+    }
+
+    let is_user = session.user_id === user_id;
+
+    let ChatMessages = await db.folder("ChatMessages");
+    let created_at = Date.now();
+
+    let chat_message = {
+      _id: crypto.randomUUID(),
+      session_id,
+      sender_type: is_user ? "user" : "agent",
+      sender_id: user_id,
+      message,
+      created_at,
+    };
+
+    await ChatMessages.insertOne(chat_message);
+
+    await ChatSessions.updateOne(
+      { _id: session_id },
+      {
+        $set: {
+          last_message: chat_message._id,
+          updated_at: created_at,
+        },
       },
-    },
-  );
+    );
 
-  /*
-   * Emit:
-   *
-   * chat.message.created
-   *
-   * {
-   *   session_id,
-   *   message_id
-   * }
-   *
-   * Socket/event implementation can be attached here.
-   */
+    // Resolve the other participant.
+    const recipient_profile = is_user
+      ? session.assigned_agent_id
+      : session.user_id;
 
-  return {
-    ok: true,
-    message: "Message sent",
-    data: chat_message,
-  };
+    let delivery = {
+      sent: false,
+      reason: null,
+    };
+
+    if (!recipient_profile) {
+      delivery.reason = "Recipient profile is not assigned";
+    } else {
+      const Sockets = await services("sockets");
+
+      let connection_id = await memory.get(recipient_profile);
+
+      // Fall back to the persistent connection registry.
+      if (!connection_id) {
+        let SocketConn = await db.folder("Socket_conn");
+
+        let connection = await SocketConn.findOne({
+          _id: recipient_profile,
+        });
+
+        connection_id = connection?.connection_id || null;
+
+        if (connection_id) {
+          await memory.set(recipient_profile, connection_id);
+        }
+      }
+
+      if (!connection_id) {
+        delivery.reason = "Recipient is not connected";
+      } else {
+        const emit_result = await Sockets.call("emit", {
+          event: "chat.message.created",
+          payload: JSON.stringify(chat_message),
+          connection_id,
+        });
+
+        if (emit_result?.ok === false) {
+          delivery.reason = "Socket service rejected the emission";
+        } else {
+          delivery.sent = true;
+        }
+      }
+    }
+    return {
+      ok: true,
+      message: "Message saved",
+      data: chat_message,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: "Failed to send chat message",
+      data: null,
+    };
+  }
 };
 
 const end_chat_session = async (req) => {

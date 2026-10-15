@@ -1,7 +1,7 @@
 const services = async (services_, gp) => {
   if (!gp.utils.validateService(["profiles", "aimail"], services_)) return;
 
-  let { profiles, aimail } = services_;
+  let { profiles, aimail, sockets } = services_;
 
   return {
     profiles: {
@@ -19,6 +19,14 @@ const services = async (services_, gp) => {
       url: aimail.url,
       profile_key: aimail.profile_key,
       api_key: aimail.api_key,
+    },
+    sockets: {
+      api_version: "v1",
+      uri: sockets.uri,
+      local: sockets.local,
+      url: sockets.url,
+      profile_key: sockets.profile_key,
+      api_key: sockets.api_key,
     },
   };
 };
